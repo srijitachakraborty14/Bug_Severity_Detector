@@ -7,7 +7,7 @@ from sklearn.svm import LinearSVC
 import joblib
 
 
-def train_model():
+def train_model(): #train
 
     train, test = load_data()
 
