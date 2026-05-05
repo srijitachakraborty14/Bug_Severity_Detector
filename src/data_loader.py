@@ -5,7 +5,7 @@ import os
 
 def load_data():
 
-    file_path = os.path.abspath("data/raw/bugs.csv")
+    file_path = os.path.abspath("data/raw/bugs.csv") #file path
 
     print("Reading dataset from:", file_path)
 

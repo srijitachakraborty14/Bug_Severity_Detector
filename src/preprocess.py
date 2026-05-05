@@ -13,7 +13,7 @@ def preprocess_text(text):
 
     text = re.sub(r"\n", " ", text)
 
-    text = re.sub(r"[^a-zA-Z]", " ", text)
+    text = re.sub(r"[^a-zA-Z]", " ", text) #cleaned process
 
     words = text.split()
 
