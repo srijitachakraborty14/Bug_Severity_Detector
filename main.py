@@ -17,7 +17,7 @@ model = joblib.load("models/severity_model.pkl")
 vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
 
 # Take user input
-text = input("Enter bug description: ")
+text = input("Enter bug description: ")# input
 
 # Preprocess input
 clean_text = preprocess_text(text)
