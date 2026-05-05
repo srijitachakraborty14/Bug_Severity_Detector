@@ -1,7 +1,7 @@
 import re
 from nltk.corpus import stopwords
 
-stop_words = set(stopwords.words("english"))
+stop_words = set(stopwords.words("english")) #stopword removal
 
 
 def preprocess_text(text):
