@@ -11,7 +11,7 @@ def load_data():
 
     df = pd.read_csv(file_path, encoding="latin-1")
 
-    df = df[["Description", "Severity", "Priority"]].dropna()
+    df = df[["Description", "Severity", "Priority"]].dropna()#Description
 
     df["Severity"] = df["Severity"].str.lower()
     df["Priority"] = df["Priority"].str.lower()
