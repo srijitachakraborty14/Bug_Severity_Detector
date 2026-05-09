@@ -1,31 +1,25 @@
-#from src.inference import predict
-
-# Take input from user
-#text = input("Enter bug description: ")
-
-# Predict severity and solution
-#severity, solution = predict(text)
-
-# Show results
-#print("\nPredicted Severity:", severity)
-#print("Suggested Solution:", solution)
 import joblib
 from src.preprocess import preprocess_text
 
-# Load saved model and vectorizer
+# Load trained model and vectorizer
 model = joblib.load("models/severity_model.pkl")
 vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
 
 # Take user input
-text = input("Enter bug description: ")# input
+text = input("Enter bug description: ")
 
-# Preprocess input
-clean_text = preprocess_text(text)
+# 🔧 Fix for short inputs
+if len(text.split()) < 5:
+    text = "System issue: " + text + " causing failure in application functionality"
+
+# Preprocess text
+clean = preprocess_text(text)
 
 # Convert to TF-IDF
-vector = vectorizer.transform([clean_text])
+vec = vectorizer.transform([clean])
 
 # Predict severity
-prediction = model.predict(vector)
+prediction = model.predict(vec)
 
+# Output result
 print("Predicted Severity:", prediction[0])
