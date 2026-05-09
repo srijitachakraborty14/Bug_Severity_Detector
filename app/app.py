@@ -16,73 +16,73 @@ model = joblib.load("models/severity_model.pkl")
 vectorizer = joblib.load("models/tfidf_vectorizer.pkl")
 
 # ======================
-# CUSTOM CSS
+# SIDEBAR
 # ======================
-st.markdown("""
-<style>
-.block-container {
-    padding: 2rem;
-}
-h1 {
-    text-align: center;
-    color: #1e3a8a;
-}
-.stButton>button {
-    background-color: #2563eb;
-    color: white;
-    border-radius: 10px;
-    padding: 10px 20px;
-}
-</style>
-""", unsafe_allow_html=True)
+st.sidebar.markdown("## 🐞 Bug Analyzer")
+menu = st.sidebar.radio("", ["🏠 Home", "📂 Upload", "📊 Reports"])
 
 # ======================
 # HEADER
 # ======================
-st.title("🐞 AI Bug Severity Analyzer")
+st.markdown(
+    "<h1 style='color:white; text-align:left;'>AI Bug Severity Analyzer</h1>",
+    unsafe_allow_html=True
+)
 
 # ======================
-# SINGLE INPUT SECTION
+# MAIN LAYOUT
 # ======================
-st.subheader("🔍 Enter Bug Description")
-
-text = st.text_area("Describe the bug in detail...")
-
-if st.button("Predict Severity"):
-    if len(text.strip()) == 0:
-        st.warning("Please enter a bug description.")
-    else:
-        # Handle short input
-        if len(text.split()) < 5:
-            text = "System issue: " + text + " causing failure in application functionality"
-
-        clean = preprocess_text(text)
-        vec = vectorizer.transform([clean])
-        pred = model.predict(vec)[0]
-
-        st.success(f"Predicted Severity: {pred}")
+left, right = st.columns([2, 1])
 
 # ======================
-# FILE UPLOAD SECTION
+# LEFT PANEL
 # ======================
-st.subheader("📂 Upload Bug File (CSV)")
+with left:
+    st.subheader("Enter Bug Description")
 
-uploaded_file = st.file_uploader("Upload CSV with 'Description' column", type=["csv"])
+    text = st.text_area("Describe the bug in detail...", height=150)
 
+    if st.button("✨ Predict"):
+        if len(text.strip()) == 0:
+            st.warning("Please enter a bug description.")
+        else:
+            if len(text.split()) < 5:
+                text = "System issue: " + text + " causing failure in application functionality"
+
+            clean = preprocess_text(text)
+            vec = vectorizer.transform([clean])
+            pred = model.predict(vec)[0]
+
+            st.success(f"Predicted Severity: {pred.upper()}")
+
+    # Upload
+    st.subheader("Upload CSV File")
+    uploaded_file = st.file_uploader("Upload CSV with 'Description' column", type=["csv"])
+
+# ======================
+# RIGHT PANEL (STATIC SUMMARY)
+# ======================
+with right:
+    st.subheader("Prediction Summary")
+
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("BLOCKER", "—")
+    c2.metric("CRITICAL", "—")
+    c3.metric("MAJOR", "—")
+    c4.metric("MINOR", "—")
+    c5.metric("TRIVIAL", "—")
+
+# ======================
+# FILE PROCESSING
+# ======================
 if uploaded_file is not None:
 
     df = pd.read_csv(uploaded_file)
 
-    # Check column
     if "Description" not in df.columns:
         st.error("CSV must contain 'Description' column")
     else:
-        st.write("📄 Uploaded Data")
-        st.dataframe(df.head())
-
-        # ======================
-        # PREDICTION
-        # ======================
+        # Prediction
         df["clean"] = df["Description"].apply(preprocess_text)
         X = vectorizer.transform(df["clean"])
         df["Predicted_Severity"] = model.predict(X)
@@ -117,25 +117,59 @@ if uploaded_file is not None:
         df = df.sort_values(by="priority")
 
         # ======================
-        # DISPLAY TABLE
+        # SUMMARY COUNTS
         # ======================
-        st.subheader("📊 Predicted Bugs (Sorted)")
-        st.dataframe(df[["Description", "Predicted_Severity", "Solution"]])
+        counts = df["Predicted_Severity"].value_counts()
 
-        # ======================
-        # DOWNLOAD BUTTON
-        # ======================
-        csv = df.to_csv(index=False).encode("utf-8")
+        with right:
+            st.subheader("Updated Summary")
 
-        st.download_button(
-            "⬇️ Download Results",
-            csv,
-            "predicted_bugs.csv",
-            "text/csv"
-        )
+            c1, c2, c3, c4, c5 = st.columns(5)
+            c1.metric("BLOCKER", counts.get("blocker", 0))
+            c2.metric("CRITICAL", counts.get("critical", 0))
+            c3.metric("MAJOR", counts.get("major", 0))
+            c4.metric("MINOR", counts.get("minor", 0))
+            c5.metric("TRIVIAL", counts.get("trivial", 0))
 
         # ======================
         # CHART
         # ======================
-        st.subheader("📈 Severity Distribution")
-        st.bar_chart(df["Predicted_Severity"].value_counts())
+        st.subheader("📊 Severity Distribution")
+        st.bar_chart(counts)
+
+        # ======================
+        # COLOR FUNCTION (FIXED)
+        # ======================
+        def color_severity(val):
+            colors = {
+                "blocker": "background-color:#fecaca",
+                "critical": "background-color:#fed7aa",
+                "major": "background-color:#fde68a",
+                "minor": "background-color:#bfdbfe",
+                "trivial": "background-color:#bbf7d0"
+            }
+            return colors.get(str(val).lower(), "")
+
+        # ======================
+        # TABLE (FIXED)
+        # ======================
+        st.subheader("📋 Predicted Bugs")
+
+        styled_df = df[["Description", "Predicted_Severity", "Solution"]].style.map(
+            color_severity,
+            subset=["Predicted_Severity"]
+        )
+
+        st.dataframe(styled_df)
+
+        # ======================
+        # DOWNLOAD
+        # ======================
+        csv = df.to_csv(index=False).encode("utf-8")
+
+        st.download_button(
+            "⬇️ Export Results",
+            csv,
+            "results.csv",
+            "text/csv"
+        )
