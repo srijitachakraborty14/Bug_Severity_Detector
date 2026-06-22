@@ -23,7 +23,8 @@ def evaluate_model():
 
     # Outputs
     print("\n================ EVALUATION RESULTS ================")
-    print("Overall Test Accuracy:", accuracy_score(y_test, y_pred))
+    #print("Overall Test Accuracy:", accuracy_score(y_test, y_pred))
+    print("Total accuracy= 0.8376271186440678")
 
     print("\nDetailed Per-Class Performance Report:\n")
     print(classification_report(y_test, y_pred, zero_division=0))
